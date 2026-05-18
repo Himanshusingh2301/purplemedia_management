@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const base = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+const API_URL = base ? `${base}/api` : '/api';
 
 export const fetchApi = async (endpoint, options = {}) => {
   const user = JSON.parse(localStorage.getItem('user'));
