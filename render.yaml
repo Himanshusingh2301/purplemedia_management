@@ -1,0 +1,14 @@
+# Render Blueprint — backend API only
+# Frontend: deploy separately (Vercel/Netlify) and set VITE_API_URL + VITE_SOCKET_URL
+services:
+  - type: web
+    name: task-manager-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
