@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, CheckSquare, Clock, Edit, Trash2 } from 'lucide-react';
+import TaskTitle from '../components/TaskTitle';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -118,7 +119,11 @@ const AdminDashboard = () => {
               <div key={task._id} className="p-3 border border-gray-100 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">{task.title}</h3>
+                    <TaskTitle
+                      task={task}
+                      as="h3"
+                      className="font-medium text-gray-900 dark:text-white"
+                    />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assigned to: {task.assignedTo?.name || 'Unassigned'}</p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${

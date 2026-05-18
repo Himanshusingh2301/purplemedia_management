@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
@@ -25,7 +26,10 @@ const PrivateRoute = ({ children, roles }) => {
 
 const AppRoutes = () => {
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved !== null ? saved === 'true' : true;
+  });
 
   useEffect(() => {
     if (darkMode) {
@@ -33,6 +37,7 @@ const AppRoutes = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    localStorage.setItem('darkMode', String(darkMode));
   }, [darkMode]);
 
   return (
@@ -81,7 +86,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <AppRoutes />
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>

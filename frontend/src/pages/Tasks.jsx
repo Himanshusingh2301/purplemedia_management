@@ -3,6 +3,9 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { Trash2, Link as LinkIcon, Plus, ChevronDown, X } from 'lucide-react';
+import StatusSelect from '../components/StatusSelect';
+import NotesPanel from '../components/NotesPanel';
+import TaskTitle from '../components/TaskTitle';
 
 const Tasks = () => {
   const { user } = useAuth();
@@ -17,6 +20,7 @@ const Tasks = () => {
   const [assignedTo, setAssignedTo] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openRowDropdownId, setOpenRowDropdownId] = useState(null);
+  const [notesTaskId, setNotesTaskId] = useState(null);
 
   useEffect(() => {
     fetchTasks();
@@ -218,6 +222,7 @@ const Tasks = () => {
                 <th className="px-6 py-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Task Title & Document</th>
                 <th className="px-6 py-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Assigned To</th>
                 <th className="px-6 py-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Status</th>
+                <th className="px-6 py-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Notes</th>
                 <th className="px-6 py-4 font-semibold text-sm text-gray-700 dark:text-gray-300 text-right">Actions</th>
               </tr>
             </thead>
@@ -225,18 +230,13 @@ const Tasks = () => {
               {tasks.map((t) => (
                 <tr key={t._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-6 py-4">
-                    {t.documentLinks && t.documentLinks.length > 0 ? (
-                      <a 
-                        href={t.documentLinks[0]} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="font-medium text-primary hover:underline flex items-center gap-2"
-                      >
-                        {t.title}
-                        <LinkIcon size={14} className="opacity-50" />
-                      </a>
-                    ) : (
-                      <span className="font-medium text-gray-900 dark:text-white">{t.title}</span>
+                    <TaskTitle
+                      task={t}
+                      as="span"
+                      className="font-medium text-gray-900 dark:text-white"
+                    />
+                    {t.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{t.description}</p>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 relative group">
@@ -302,22 +302,22 @@ const Tasks = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <select 
-                      className={`text-xs px-2 py-1 rounded-full border-0 font-medium cursor-pointer focus:ring-2 focus:ring-primary ${
-                        t.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        t.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                      }`}
+                    <StatusSelect
                       value={t.status}
                       onChange={(e) => updateTaskStatus(t._id, e.target.value)}
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      type="button"
+                      onClick={() => setNotesTaskId(t._id)}
+                      className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Completed">Completed</option>
-                    </select>
+                      Notes
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(t._id)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    <button onClick={() => handleDelete(t._id)} className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                       <Trash2 size={18} />
                     </button>
                   </td>
@@ -332,6 +332,13 @@ const Tasks = () => {
           )}
         </div>
       </div>
+
+      <NotesPanel
+        task={tasks.find((t) => t._id === notesTaskId)}
+        open={!!notesTaskId}
+        onClose={() => setNotesTaskId(null)}
+        onUpdate={fetchTasks}
+      />
     </div>
   );
 };

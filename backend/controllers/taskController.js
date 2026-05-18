@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const { notifyUsers } = require('../utils/notify');
 
 exports.createTask = async (req, res) => {
   try {
@@ -18,11 +19,13 @@ exports.createTask = async (req, res) => {
     // Populate assignedTo to get the user's name/email if needed
     const populatedTask = await Task.findById(task._id).populate('assignedTo', 'name email');
 
-    // Emit socket event to each assigned user
-    if (req.io && assignedToArray.length > 0) {
-      assignedToArray.forEach(userId => {
-        req.io.emit(`taskAssigned_${userId}`, { message: 'You have a new task assigned', task: populatedTask });
-      });
+    if (assignedToArray.length > 0) {
+      notifyUsers(
+        req.io,
+        assignedToArray,
+        `New task assigned: "${populatedTask.title}"`,
+        populatedTask
+      );
     }
 
     res.status(201).json(populatedTask);
@@ -42,7 +45,8 @@ exports.getTasks = async (req, res) => {
     
     const tasks = await Task.find(query)
       .populate('assignedTo', 'name email')
-      .populate('comments.user', 'name');
+      .populate('comments.user', 'name')
+      .populate('notes.user', 'name');
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -58,6 +62,8 @@ exports.updateTask = async (req, res) => {
     task.title = title || task.title;
     task.description = description !== undefined ? description : task.description;
     task.priority = priority || task.priority;
+    const previousAssignees = task.assignedTo.map((id) => id.toString());
+
     if (assignedTo !== undefined) {
       task.assignedTo = Array.isArray(assignedTo) ? assignedTo : (assignedTo ? [assignedTo] : []);
     }
@@ -65,8 +71,22 @@ exports.updateTask = async (req, res) => {
     task.status = status || task.status;
 
     await task.save();
-    
+
     const populatedTask = await Task.findById(task._id).populate('assignedTo', 'name email');
+
+    const newAssignees = task.assignedTo
+      .map((id) => id.toString())
+      .filter((id) => !previousAssignees.includes(id));
+
+    if (newAssignees.length > 0) {
+      notifyUsers(
+        req.io,
+        newAssignees,
+        `You were assigned to "${populatedTask.title}"`,
+        populatedTask
+      );
+    }
+
     res.json(populatedTask);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -120,6 +140,33 @@ exports.addDocumentLink = async (req, res) => {
     await task.save();
 
     res.json(task);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addNote = async (req, res) => {
+  try {
+    const { type, content } = req.body;
+    if (!['text', 'link'].includes(type) || !content?.trim()) {
+      return res.status(400).json({ message: 'Type and content are required' });
+    }
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    if (req.user.role === 'Employee' && !task.assignedTo.some(id => id.toString() === req.user.id)) {
+      return res.status(403).json({ message: 'Not authorized to add notes on this task' });
+    }
+
+    task.notes.push({ user: req.user.id, type, content: content.trim() });
+    await task.save();
+
+    const populatedTask = await Task.findById(task._id)
+      .populate('assignedTo', 'name email')
+      .populate('notes.user', 'name')
+      .populate('comments.user', 'name');
+    res.json(populatedTask);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -6,7 +6,8 @@ const {
   deleteTask,
   updateTaskStatus,
   addDocumentLink,
-  addComment
+  addComment,
+  addNote
 } = require('../controllers/taskController');
 const protect = require('../middleware/auth');
 const authorize = require('../middleware/role');
@@ -28,5 +29,8 @@ router.route('/:id/links')
 
 router.route('/:id/comments')
   .post(protect, addComment);
+
+router.route('/:id/notes')
+  .post(protect, addNote);
 
 module.exports = router;

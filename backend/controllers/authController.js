@@ -89,7 +89,8 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // In a real app, send email with the token
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${clientUrl.replace(/\/$/, '')}/reset-password/${resetToken}`;
     
     res.status(200).json({ success: true, message: 'Reset token generated (mock email sent)', resetUrl });
   } catch (error) {

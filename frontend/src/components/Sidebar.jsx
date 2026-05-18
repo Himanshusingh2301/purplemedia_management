@@ -1,66 +1,58 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, CheckSquare, Users, Settings, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Users, User, LogOut } from 'lucide-react';
+
+const navClass = ({ isActive }) =>
+  `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all duration-200 ${
+    isActive
+      ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/25'
+      : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-100'
+  }`;
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
 
   const adminLinks = [
-    { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks' },
-    { to: '/users', icon: <Users size={20} />, label: 'Users' },
+    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+    { to: '/users', icon: Users, label: 'Users' },
   ];
 
   const userLinks = [
-    { to: '/', icon: <LayoutDashboard size={20} />, label: 'My Tasks' },
+    { to: '/', icon: LayoutDashboard, label: 'My Tasks' },
   ];
 
   const links = user?.role === 'Admin' ? adminLinks : userLinks;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 glass border-r border-gray-200 dark:border-gray-800 transition-colors">
-      <div className="flex-1 overflow-y-auto py-6 px-4">
+    <aside className="hidden md:flex flex-col w-64 bg-slate-950 border-r border-slate-800">
+      <div className="flex-1 overflow-y-auto py-6 px-3">
         <nav className="space-y-1">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-400'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-                }`
-              }
-            >
-              <span className="mr-3">{link.icon}</span>
-              {link.label}
-            </NavLink>
-          ))}
+          {links.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink key={link.to} to={link.to} className={navClass}>
+                <Icon size={20} strokeWidth={2} />
+                {link.label}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
-      
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+
+      <div className="p-3 border-t border-slate-800">
         <nav className="space-y-1">
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-400'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-              }`
-            }
-          >
-            <User size={20} className="mr-3" />
+          <NavLink to="/profile" className={navClass}>
+            <User size={20} strokeWidth={2} />
             Profile
           </NavLink>
           <button
+            type="button"
             onClick={logout}
-            className="flex w-full items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+            className="flex w-full items-center gap-3 px-4 py-3 text-base font-medium rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-200"
           >
-            <LogOut size={20} className="mr-3" />
+            <LogOut size={20} strokeWidth={2} />
             Sign Out
           </button>
         </nav>
