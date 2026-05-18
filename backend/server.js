@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -62,17 +63,31 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
-// Serve Frontend (For Production/Railway Monorepo setup)
-const frontendPath = path.join(__dirname, '../frontend/dist');
-app.use(express.static(frontendPath));
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', service: 'Task Manager API' });
+});
 
 app.use('/api/*splat', (req, res) => {
   res.status(404).json({ message: 'API route not found' });
 });
 
-app.get('*splat', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
+// Optional: serve built frontend when deployed as monorepo
+const frontendPath = path.join(__dirname, '../frontend/dist');
+const hasFrontend = fs.existsSync(path.join(frontendPath, 'index.html'));
+
+if (hasFrontend) {
+  app.use(express.static(frontendPath));
+  app.get('*splat', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'Task Manager API is running',
+      docs: 'Point your frontend VITE_API_URL to this service /api',
+    });
+  });
+}
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/taskmanager')
