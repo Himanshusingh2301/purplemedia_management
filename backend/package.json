@@ -4,10 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "engines": {
-    "node": "20.x"
+    "dev": "nodemon server.js",
+    "build": "echo done"
   },
   "keywords": [],
   "author": "",

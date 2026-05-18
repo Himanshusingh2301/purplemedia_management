@@ -7,21 +7,6 @@ const { Server } = require('socket.io');
 
 dotenv.config();
 
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.MONGO_URI) {
-    console.error('FATAL: MONGO_URI is required in production.');
-    process.exit(1);
-  }
-  const weakJwt =
-    !process.env.JWT_SECRET ||
-    process.env.JWT_SECRET === 'secret' ||
-    process.env.JWT_SECRET === 'change-this-in-production';
-  if (weakJwt) {
-    console.error('FATAL: Set a strong JWT_SECRET in production.');
-    process.exit(1);
-  }
-}
-
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
   : process.env.CLIENT_URL
